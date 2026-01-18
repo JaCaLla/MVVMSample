@@ -8,18 +8,20 @@
 import Foundation
 import Combine
 
-class UserListViewModel {
-    // @Published emite automáticamente el nuevo valor cada vez que cambia
-    @Published private(set) var users: [User] = []
+class UserListViewModel: ObservableObject {
+    @Published var users: [User] = []
+    @Published var isLoading = false
     
     func fetchUsers() {
-        // Simulamos una demora de red
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        isLoading = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.users = [
-                User(name: "Ana Combine", email: "ana@apple.com"),
-                User(name: "Pedro Publisher", email: "pedro@apple.com"),
-                User(name: "Sara Subscriber", email: "sara@apple.com")
+                User(name: "Ana SwiftUI", email: "ana@apple.com"),
+                User(name: "Pedro State", email: "pedro@apple.com"),
+                User(name: "Sara Binding", email: "sara@apple.com")
             ]
+            self.isLoading = false
         }
     }
 }
