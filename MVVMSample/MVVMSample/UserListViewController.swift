@@ -6,15 +6,15 @@
 //
 
 import UIKit
-import RxSwift
-import RxCocoa
+import Combine
 
 class UserListViewController: UIViewController {
     
     private let tableView = UITableView()
     private let viewModel = UserListViewModel()
-    private let disposeBag = DisposeBag()
     private let cellId = "UserCell"
+    
+    private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,26 +24,38 @@ class UserListViewController: UIViewController {
     }
     
     private func setupBindings() {
-        viewModel.users
-            .bind(to: tableView.rx.items(cellIdentifier: cellId, cellType: UITableViewCell.self)) { (row, user, cell) in
-                var content = cell.defaultContentConfiguration()
-                content.text = user.name
-                content.secondaryText = user.email
-                cell.contentConfiguration = content
+        viewModel.$users
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.tableView.reloadData()
             }
-            .disposed(by: disposeBag)
-        
-        tableView.rx.modelSelected(User.self)
-            .subscribe(onNext: { user in
-                print("Usuario seleccionado: \(user.name)")
-            })
-            .disposed(by: disposeBag)
+            .store(in: &cancellables)
     }
     
     private func setupUI() {
-        title = "Usuarios Rx"
+        title = "Usuarios con Combine"
         view.addSubview(tableView)
         tableView.frame = view.bounds
+        tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
+    }
+}
+
+// MARK: - TableView DataSource
+extension UserListViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel.users.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+        let user = viewModel.users[indexPath.row]
+        
+        var content = cell.defaultContentConfiguration()
+        content.text = user.name
+        content.secondaryText = user.email
+        cell.contentConfiguration = content
+        
+        return cell
     }
 }

@@ -5,28 +5,21 @@
 //  Created by Javier Calatrava on 18/1/26.
 //
 
-import RxSwift
-import RxRelay
+import Foundation
+import Combine
 
 class UserListViewModel {
-    // Relay que contiene la lista de usuarios (empieza vacío)
-    // Usamos Relay porque no emite errores y no termina la secuencia
-    private let usersRelay = BehaviorRelay<[User]>(value: [])
-    
-    // Exponemos el relay como un Observable para que la View no pueda modificarlo
-    var users: Observable<[User]> {
-        return usersRelay.asObservable()
-    }
+    // @Published emite automáticamente el nuevo valor cada vez que cambia
+    @Published private(set) var users: [User] = []
     
     func fetchUsers() {
-        // Simulamos petición de red
-        let mockData = [
-            User(name: "Alice", email: "alice@example.com"),
-            User(name: "Bob", email: "bob@example.com"),
-            User(name: "Charlie", email: "charlie@example.com")
-        ]
-        
-        // "Empujamos" los nuevos datos al stream
-        usersRelay.accept(mockData)
+        // Simulamos una demora de red
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.users = [
+                User(name: "Ana Combine", email: "ana@apple.com"),
+                User(name: "Pedro Publisher", email: "pedro@apple.com"),
+                User(name: "Sara Subscriber", email: "sara@apple.com")
+            ]
+        }
     }
 }
